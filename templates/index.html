@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>NutriVision</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <script src="app.js"></script> -->
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+
+
+    <style>
+
+        body {
+            background-image: url("../static/images/header.jpg");
+            background-color: #cccccc;
+        }
+
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>
+            NutriVision
+        </h1>
+    </header>
+    <video id="player" controls autoplay></video>
+    <button id="capture">Capture</button>
+    <canvas id="canvas" width=320 height=240></canvas>
+    <h2 id="wait"></h2>
+    <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script src="https://apis.google.com/js/client.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script>
+        const player = document.getElementById('player');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const captureButton = document.getElementById('capture');
+        const constraints = {
+            video: true,
+        };
+        captureButton.addEventListener('click', () => {
+            // Draw the video frame to the canvas.
+            context.drawImage(player, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(function (blob) {
+                // saveAs(blob, "image.png");
+                var reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = function () {
+                    base64data = reader.result;
+                    base64data = base64data.substring(22);
+                    // window.alert(typeof base64data);
+                    // window.alert(base64data);
+                    //Calling the curl
+                    $.ajax({
+                        method: 'POST',
+                        url: "http://3.16.169.54/predict",
+                        data: { 'data': base64data },
+                        // async: false,
+                        // success: function (data) {
+
+                        // },
+                    });
+                    document.getElementById("wait").innerHTML = "Please wait while we fetch your results...";
+                    setTimeout(function () {
+                        window.location.replace("http://3.16.169.54/get_final_result")
+                    }, 3 * 1000);
+                }
+            });
+        });
+
+        // Attach the video stream to the video element and autoplay.
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then((stream) => {
+                player.srcObject = stream;
+            });
+    </script>
+
+    <!-- <form action="http://3.16.169.54/get_nutrition_info/taco" method="get" id="form"> -->
+    <!-- <form action="" method="get" id="form">
+        <input type="file" name="fileToUpload" id="fileToUpload">
+        <button type="submit" name="submit" id="button" onclick="identify();">Identify Food!</button> -->
+        <!-- <button type="submit" name="submit" id="button">Identify Food!</button> -->
+        <!-- <script>
+            var reader = new FileReader();
+            var fileByteArray = [];
+            reader.readAsArrayBuffer(fileToUpload);
+            reader.onloadend = function (e) {
+                var arrayBuffer = e.target.result;
+                var bytes = new Uint8Array(arrayBuffer);
+                window.alert(bytes);
+            }
+        </script> -->
+    <!-- </form> -->
+
+    <main></main>
+</body>
+
+</html>
